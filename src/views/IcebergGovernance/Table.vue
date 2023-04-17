@@ -10,8 +10,8 @@
       <tr v-for="item in tables">
         <td>{{item.name}}</td>
         <td>{{item.location}}</td>
-        <td>{{item.fileNum}}</td>
-        <td>{{item.statues}}</td>
+        <td>{{item.fileNumber}}</td>
+        <td>{{item.mergeState}}</td>
       </tr>
     </table>
     {{ msg }}
@@ -27,22 +27,16 @@ export default {
       tables: [{
         name: 11,
         location: "lo1",
-        fileNum: 1,
-        statues: "free"
-      },
-        {
-          name: 22,
-          location: "lo2",
-          fileNum: 2,
-          statues: "no"
-        }]
+        fileNumber: 1,
+        mergeState: "free"
+      }]
     }
   },
   created() {
     const _this = this
-    _this.$axiosGet('/api/icebergGovernance/table/getTableList')
+    _this.$axiosGet('/icebergGovernance/table/getTableList')
         .then(function (res) {
-      console.log(res)
+          _this.tables = res.data;
     });
   },
   methods: {}

@@ -2,15 +2,14 @@
  * 此文件主要创建 axios 实例，然后添加请求拦截器和响应拦截器
  */
 import axios from 'axios'
-// import { Message } from 'element-ui';
-
+import { ElMessage } from 'element-plus';
 //请求的服务器的地址
-const basePath = '134.96.176.241:28781';
+const basePath = '/api';
 
 //创建 axios 实例
 const axiosInstance = axios.create({
   baseURL: basePath,
-  withCredentials: true,  //是否允许跨域
+  // withCredentials: true,  //是否允许跨域
   timeout: 9000
 });
 
@@ -34,7 +33,7 @@ axiosInstance.interceptors.request.use(
 //添加响应拦截器
 axiosInstance.interceptors.response.use(
     response => {
-      console.log("axios响应拦截器的数据：",response);
+      // console.log("axios响应拦截器的数据：",response);
       /**
        * 对响应数据判断:
        *  如果成功返回数据，就通过return把数据返出去
@@ -43,7 +42,6 @@ axiosInstance.interceptors.response.use(
       if(response.status==200){
         return response.data;
         // return response;
-        // return 123;
       }else{
         handleErrorData(response.data);
       }
@@ -57,31 +55,31 @@ axiosInstance.interceptors.response.use(
     }
 );
 //对错误信息的处理函数
-// function handleErrorData(errMes){
-//   if(errMes.message){
-//     Message.error(errMes.message);
-//   }else{
-//     switch(errMes.code){
-//       case 401 :
-//         Message.error("未授权，请重新登录!");
-//         break;
-//       case 403 :
-//         Message.error("拒绝访问");
-//         break;
-//       case 404 :
-//         Message.error("很抱歉，资源未找到!");
-//         break;
-//       case 500 :
-//         Message.error("服务器错误!");
-//         break;
-//       case 504 :
-//         Message.error("网络超时!");
-//         break;
-//       default :
-//         Message.error("服务正在联调中，请稍后!");
-//         break;
-//     }
-//   }
-// }
+function handleErrorData(errMes){
+  if(errMes.message){
+      ElMessage.error(errMes.message);
+  }else{
+    switch(errMes.code){
+      case 401 :
+          ElMessage.error("未授权，请重新登录!");
+        break;
+      case 403 :
+          ElMessage.error("拒绝访问");
+        break;
+      case 404 :
+          ElMessage.error("很抱歉，资源未找到!");
+        break;
+      case 500 :
+          ElMessage.error("服务器错误!");
+        break;
+      case 504 :
+          ElMessage.error("网络超时!");
+        break;
+      default :
+          ElMessage.error("服务正在联调中，请稍后!");
+        break;
+    }
+  }
+}
 
 export {axiosInstance}

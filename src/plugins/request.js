@@ -5,6 +5,7 @@
 
 import { axiosInstance as axios } from "./axios.js"
 
+
 //get
 export function axiosGet(url,parameter={}) {
     return axios({  //这里的 axios 就是从 axios.js 中引入的 axiosInstance
