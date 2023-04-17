@@ -8,13 +8,13 @@ import Index from "../views/Index"
 const routes = [
     {
         path: "/",
-        name: "导航1",
+        name: "迁移工具",
         component: Index,
         children: [
             {
-                path: '/Home',
-                name: 'Home',
-                component: Home
+                path: '/metaTransformIndex',
+                name: '元数据迁移',
+                component: ()=>import('../views/metaTransform/metaTransformIndex')
             },
             {
                 path: '/about',

@@ -1,0 +1,344 @@
+<template>
+  <el-form :model="formData" ref="vForm" :rules="rules" label-position="left" label-width="150px"
+           size="default" @submit.prevent>
+    <div class="static-content-item">
+    </div>
+    <div class="static-content-item" v-show="false">
+      <el-divider direction="horizontal"></el-divider>
+    </div>
+    <div class="card-container">
+      <el-card style="{width: 100% !important}" shadow="never">
+        <template #header>
+          <div class="clear-fix">
+            <span>导出集群信息</span>
+            <i class="float-right el-icon-arrow-down"></i>
+          </div>
+        </template>
+        <el-row>
+          <el-col :span="12" class="grid-cell">
+            <el-form-item label="Hive连接串" prop="hiveConnectionJson.uri" class="required label-right-align">
+              <el-input v-model="formData.hiveConnectionJson.uri" type="text" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="用户名" prop="hiveConnectionJson.username" class="required label-right-align">
+              <el-input v-model="formData.hiveConnectionJson.username" type="text" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="密码" prop="hiveConnectionJson.password" class="required label-right-align">
+              <el-input v-model="formData.hiveConnectionJson.password" type="text" clearable></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="11" :offset="1" class="grid-cell">
+            <el-form-item label="连接池大小" prop="poolSize" class="label-right-align">
+              <el-input-number v-model="formData.hiveConnectionJson.poolSize" class="full-width-input"
+                               controls-position="right"
+                               :min="0" :max="20" :precision="0" :step="1"></el-input-number>
+            </el-form-item>
+            <el-form-item label="连接重试" prop="maxRetry" class="label-right-align">
+              <el-input-number v-model="formData.hiveConnectionJson.maxRetry" class="full-width-input"
+                               controls-position="right"
+                               :min="0" :max="30" :precision="0" :step="1"></el-input-number>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24" class="grid-cell">
+          </el-col>
+        </el-row>
+      </el-card>
+    </div>
+    <div class="static-content-item" v-show="false">
+      <el-divider direction="horizontal"></el-divider>
+    </div>
+    <div class="static-content-item">
+      <el-divider direction="horizontal"></el-divider>
+    </div>
+    <div class="card-container">
+      <el-card style="{width: 100% !important}" shadow="never">
+        <template #header>
+          <div class="clear-fix">
+            <span>导入集群信息</span>
+            <i class="float-right el-icon-arrow-down"></i>
+          </div>
+        </template>
+        <el-row>
+          <el-col :span="24" class="grid-cell">
+            <el-form-item label="导入Catalog" prop="catalog" class="label-right-align">
+              <el-select v-model="formData.catalogId" class="full-width-input" clearable>
+                <el-option v-for="(item, index) in catalogOptions" :key="index" :label="item.name"
+                           :value="item.id"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12" class="grid-cell">
+            <el-form-item label="导入线程数" prop="threadNum" class="label-right-align">
+              <el-input-number v-model="formData.threadNum" class="full-width-input" controls-position="right"
+                               :min="-100000000000" :max="100000000000" :precision="0" :step="1"></el-input-number>
+            </el-form-item>
+            <el-form-item label="导入用户" prop="kerberosUser" class="required label-right-align">
+              <el-input v-model="formData.kerberosUser" type="text" clearable></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="11" :offset="1" class="grid-cell">
+            <el-form-item label="是否自定义导入库" prop="isUdfDatabase" class="label-right-align">
+              <el-switch v-model="isUdfDatabase"></el-switch>
+            </el-form-item>
+            <el-form-item label="自定义导入库名" prop="udfDataBase" class="label-right-align" v-if="isUdfDatabase">
+              <el-input v-model="formData.udfDataBase" type="text" placeholder="开启后, 所有表都会导入自定义库下" clearable></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24" class="grid-cell">
+            <el-form-item label="自定义配置" prop="envConfigFile" class="label-right-align">
+              <el-upload :file-list="envConfigFileFileList" :headers="envConfigFileUploadHeaders"
+                         :data="envConfigFileUploadData" list-type="picture-card" show-file-list :limit="3">
+                <template
+                    #default><i class="el-icon-plus"></i></template>
+              </el-upload>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-card>
+    </div>
+    <div class="static-content-item" v-show="false">
+      <el-divider direction="horizontal"></el-divider>
+    </div>
+    <div class="static-content-item">
+      <el-divider direction="horizontal"></el-divider>
+    </div>
+    <div class="card-container">
+      <el-card style="{width: 100% !important}" shadow="never">
+        <template #header>
+          <div class="clear-fix">
+            <span>导入表信息</span>
+            <i class="float-right el-icon-arrow-down"></i>
+          </div>
+        </template>
+        <el-row>
+          <el-col :span="24" class="grid-cell">
+            <el-form-item label="自定义表属性" prop="icebergTableConfig" class="label-right-align">
+              <el-input type="textarea" v-model="formData.icebergTableConfig" rows="3"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24" class="grid-cell">
+            <el-form-item label="导入清单类型" prop="listType" class="label-right-align">
+              <el-select v-model="formData.listType" class="full-width-input" clearable>
+                <el-option v-for="(item, index) in listTypeOptions" :key="index" :label="item.label"
+                           :value="item.value" :disabled="item.disabled"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="表清单" prop="tableList" class="label-right-align" v-if="formData.listType=='list'">
+              <el-input type="textarea" v-model="formData.tableList"
+                        placeholder="例:dbs1 tbl1;dbs2 tbl2;...表数量大于50张请使用文件方式" rows="3"></el-input>
+            </el-form-item>
+            <el-form-item label="主机文件路径" prop="udfDataBase" class="label-right-align" v-if="formData.listType=='file'">
+              <el-input v-model="formData.filePath" type="text" placeholder="请联系管理员上传文件" clearable></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24" class="grid-cell">
+          </el-col>
+        </el-row>
+      </el-card>
+    </div>
+    <div class="static-content-item">
+      <el-button @click="submitForm">提交</el-button>
+    </div>
+  </el-form>
+
+</template>
+
+<script>
+import {
+  defineComponent,
+  toRefs,
+  reactive,
+  getCurrentInstance
+}
+  from 'vue'
+
+export default defineComponent({
+  components: {},
+  props: {},
+  data() {
+    const state = reactive({
+      isUdfDatabase: false,
+      formData: {
+        hiveConnectionJson: {
+          uri: "",
+          username: "",
+          password: "",
+          poolSize: 3,
+          maxRetry: 5
+        },
+        catalogId: null,
+        threadNum: 1,
+        kerberosUser: null,
+        udfDataBase: null,
+        envConfigFile: null,
+        icebergTableConfig: null,
+        listType: null,
+        tableList: null,
+        filePath: null,
+      },
+      rules: {
+        hiveConnectionJson: {
+          uri: [{
+            required: true,
+            message: '字段值不可为空',
+          }],
+          username: [{
+            required: true,
+            message: '字段值不可为空',
+          }],
+          password: [{
+            required: true,
+            message: '字段值不可为空',
+          }]
+        },
+        kerberosUser: [{
+          required: true,
+          message: '字段值不可为空',
+        }],
+      },
+      catalogOptions: [],
+      listTypeOptions: [{
+        "label": "清单",
+        "value": "list"
+      }, {
+        "label": "文件路径",
+        "value": "file"
+      }, {
+        "label": "数据库(暂不开放)",
+        "value": "owner"
+      }, {
+        "label": "租户(暂不开放)",
+        "value": "dbs"
+      }],
+      envConfigFileFileList: [],
+      envConfigFileUploadHeaders: {},
+      envConfigFileUploadData: {},
+    })
+    const instance = getCurrentInstance()
+    const submitForm = () => {
+      instance.proxy.$refs['vForm'].validate(valid => {
+        if (!valid) return
+        const _this = this
+        alert(_this.formData.catalogId)
+        _this.$axiosPost('/metaTransform/createMultiMetaTransform', _this.formData)
+            .then(function (res) {
+              alert(res.data.message)
+            });
+      })
+    }
+    const resetForm = () => {
+      instance.proxy.$refs['vForm'].resetFields()
+    }
+
+    return {
+      ...toRefs(state),
+      submitForm,
+      resetForm
+    }
+  },
+  created() {
+    const _this = this
+    _this.$axiosGet('/icebergGovernance/catalog/getCatalogList')
+        .then(function (res) {
+          _this.catalogOptions = res.data;
+        });
+  }
+})
+
+</script>
+
+<style lang="scss">
+.el-input-number.full-width-input,
+.el-cascader.full-width-input {
+  width: 100% !important;
+}
+
+.el-form-item--medium {
+  .el-radio {
+    line-height: 36px !important;
+  }
+
+  .el-rate {
+    margin-top: 8px;
+  }
+}
+
+.el-form-item--small {
+  .el-radio {
+    line-height: 32px !important;
+  }
+
+  .el-rate {
+    margin-top: 6px;
+  }
+}
+
+.el-form-item--mini {
+  .el-radio {
+    line-height: 28px !important;
+  }
+
+  .el-rate {
+    margin-top: 4px;
+  }
+}
+
+.clear-fix:before,
+.clear-fix:after {
+  display: table;
+  content: "";
+}
+
+.clear-fix:after {
+  clear: both;
+}
+
+.float-right {
+  float: right;
+}
+
+</style>
+
+<style lang="scss" scoped>
+div.table-container {
+  table.table-layout {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+
+    td.table-cell {
+      display: table-cell;
+      height: 36px;
+      border: 1px solid #e1e2e3;
+    }
+  }
+}
+
+div.tab-container {
+}
+
+.label-left-align :deep(.el-form-item__label) {
+  text-align: left;
+}
+
+.label-center-align :deep(.el-form-item__label) {
+  text-align: center;
+}
+
+.label-right-align :deep(.el-form-item__label) {
+  text-align: right;
+}
+
+.custom-label {
+}
+
+.static-content-item {
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+
+  :deep(.el-divider--horizontal) {
+    margin: 0;
+  }
+}
+
+</style>

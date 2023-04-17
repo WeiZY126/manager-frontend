@@ -1,7 +1,7 @@
 <template>
   <div id="index">
-    <el-container class="layout-container-demo" style="height: 500px">
-      <el-aside width="200px">
+    <el-container class="layout-container-demo" style="height: 100%">
+      <el-aside width="200px" hight="100%">
         <el-scrollbar>
           <el-menu router :default-openeds="['0','1']">
             <el-sub-menu v-for="(routeItem,index) in routes"
@@ -43,9 +43,11 @@
         </el-header>
 
         <el-main>
-          <el-scrollbar>
-            <router-view/>
-          </el-scrollbar>
+          <div class="el-main">
+            <el-scrollbar>
+              <router-view/>
+            </el-scrollbar>
+          </div>
         </el-main>
       </el-container>
     </el-container>
@@ -73,6 +75,7 @@ export default {
 </script>
 
 <style scoped>
+
 .layout-container-demo .el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
@@ -89,6 +92,9 @@ export default {
 }
 
 .layout-container-demo .el-main {
+  width: 95%;
+  height: 100%;
+  margin-left: 2.5%;
   padding: 0;
 }
 
