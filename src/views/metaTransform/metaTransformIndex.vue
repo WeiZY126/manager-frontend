@@ -16,24 +16,24 @@
         </template>
         <el-row>
           <el-col :span="12" class="grid-cell">
-            <el-form-item label="Hive连接串" prop="hiveConnectionJson.uri" class="required label-right-align">
-              <el-input v-model="formData.hiveConnectionJson.uri" type="text" clearable></el-input>
+            <el-form-item label="Hive连接串" prop="hiveConnection.uri" class="required label-right-align">
+              <el-input v-model="formData.hiveConnection.uri" type="text" clearable></el-input>
             </el-form-item>
-            <el-form-item label="用户名" prop="hiveConnectionJson.username" class="required label-right-align">
-              <el-input v-model="formData.hiveConnectionJson.username" type="text" clearable></el-input>
+            <el-form-item label="用户名" prop="hiveConnection.username" class="required label-right-align">
+              <el-input v-model="formData.hiveConnection.username" type="text" clearable></el-input>
             </el-form-item>
-            <el-form-item label="密码" prop="hiveConnectionJson.password" class="required label-right-align">
-              <el-input v-model="formData.hiveConnectionJson.password" type="text" clearable></el-input>
+            <el-form-item label="密码" prop="hiveConnection.password" class="required label-right-align">
+              <el-input v-model="formData.hiveConnection.password" type="text" clearable></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="11" :offset="1" class="grid-cell">
             <el-form-item label="连接池大小" prop="poolSize" class="label-right-align">
-              <el-input-number v-model="formData.hiveConnectionJson.poolSize" class="full-width-input"
+              <el-input-number v-model="formData.hiveConnection.poolSize" class="full-width-input"
                                controls-position="right"
                                :min="0" :max="20" :precision="0" :step="1"></el-input-number>
             </el-form-item>
             <el-form-item label="连接重试" prop="maxRetry" class="label-right-align">
-              <el-input-number v-model="formData.hiveConnectionJson.maxRetry" class="full-width-input"
+              <el-input-number v-model="formData.hiveConnection.maxRetry" class="full-width-input"
                                controls-position="right"
                                :min="0" :max="30" :precision="0" :step="1"></el-input-number>
             </el-form-item>
@@ -59,7 +59,7 @@
         </template>
         <el-row>
           <el-col :span="24" class="grid-cell">
-            <el-form-item label="导入Catalog" prop="catalog" class="label-right-align">
+            <el-form-item label="导入Catalog" prop="catalogId" class="required label-right-align">
               <el-select v-model="formData.catalogId" class="full-width-input" clearable>
                 <el-option v-for="(item, index) in catalogOptions" :key="index" :label="item.name"
                            :value="item.id"></el-option>
@@ -69,7 +69,7 @@
           <el-col :span="12" class="grid-cell">
             <el-form-item label="导入线程数" prop="threadNum" class="label-right-align">
               <el-input-number v-model="formData.threadNum" class="full-width-input" controls-position="right"
-                               :min="-100000000000" :max="100000000000" :precision="0" :step="1"></el-input-number>
+                               :min="1" :max="15" :precision="0" :step="1"></el-input-number>
             </el-form-item>
             <el-form-item label="导入用户" prop="kerberosUser" class="required label-right-align">
               <el-input v-model="formData.kerberosUser" type="text" clearable></el-input>
@@ -116,7 +116,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="24" class="grid-cell">
-            <el-form-item label="导入清单类型" prop="listType" class="label-right-align">
+            <el-form-item label="导入清单类型" prop="listType" class="required label-right-align">
               <el-select v-model="formData.listType" class="full-width-input" clearable>
                 <el-option v-for="(item, index) in listTypeOptions" :key="index" :label="item.label"
                            :value="item.value" :disabled="item.disabled"></el-option>
@@ -152,13 +152,14 @@ import {
   from 'vue'
 
 export default defineComponent({
+  name: 'metaTransformIndex',
   components: {},
   props: {},
   data() {
     const state = reactive({
       isUdfDatabase: false,
       formData: {
-        hiveConnectionJson: {
+        hiveConnection: {
           uri: "",
           username: "",
           password: "",
@@ -176,24 +177,32 @@ export default defineComponent({
         filePath: null,
       },
       rules: {
-        hiveConnectionJson: {
+        hiveConnection: {
           uri: [{
             required: true,
-            message: '字段值不可为空',
+            message: '请输入hiveURI',
           }],
           username: [{
             required: true,
-            message: '字段值不可为空',
+            message: '请输入用户名',
           }],
           password: [{
             required: true,
-            message: '字段值不可为空',
+            message: '请输入密码',
           }]
         },
         kerberosUser: [{
           required: true,
-          message: '字段值不可为空',
+          message: '请输入导入用户',
         }],
+        listType:[{
+          required: true,
+          message: '请选择清单类型',
+        }],
+        catalogId:[{
+          required: true,
+          message: '请选择要导入的Catalog',
+        }]
       },
       catalogOptions: [],
       listTypeOptions: [{
@@ -218,10 +227,11 @@ export default defineComponent({
       instance.proxy.$refs['vForm'].validate(valid => {
         if (!valid) return
         const _this = this
-        alert(_this.formData.catalogId)
-        _this.$axiosPost('/metaTransform/createMultiMetaTransform', _this.formData)
+        console.log(_this.formData)
+        // _this.$axiosPost('/metaTransform/test', _this.formData)
+        _this.$axiosPost('/metaTransform/createMultiMetaTransformByForm', _this.formData)
             .then(function (res) {
-              alert(res.data.message)
+              alert(res.message)
             });
       })
     }

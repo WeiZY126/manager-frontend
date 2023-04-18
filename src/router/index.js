@@ -8,7 +8,7 @@ import Index from "../views/Index"
 const routes = [
     {
         path: "/",
-        name: "迁移工具",
+        name: "数据湖工具",
         component: Index,
         children: [
             {
@@ -17,19 +17,19 @@ const routes = [
                 component: ()=>import('../views/metaTransform/metaTransformIndex')
             },
             {
-                path: '/about',
-                name: 'About',
+                path: '/SQLParseIndex',
+                name: 'SQL语法解析',
                 // route level code-splitting
                 // this generates a separate chunk (about.[hash].js) for this route
                 // which is lazy-loaded when the route is visited.
-                component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+                component: () => import(/* webpackChunkName: "about" */ '../views/SQLParse/SQLParseIndex')
             }
         ]
     },
     ,
     {
-        path: "/na",
-        name: "导航2",
+        path: "/manager",
+        name: "数据湖管理",
         component: Index,
         redirect:"/Catalog",
         children: [

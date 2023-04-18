@@ -3,7 +3,7 @@
     <el-container class="layout-container-demo" style="height: 100%">
       <el-aside width="200px" hight="100%">
         <el-scrollbar>
-          <el-menu router :default-openeds="['0','1']">
+          <el-menu router :default-openeds="['0']">
             <el-sub-menu v-for="(routeItem,index) in routes"
                          :key="routeItem.name"
                          :index="index+''">
@@ -11,7 +11,7 @@
                 <el-icon>
                   <icon-menu/>
                 </el-icon>
-                {{ routeItem.name }}
+                <h4>{{ routeItem.name }}</h4>
               </template>
 
               <el-menu-item v-for="child in routeItem.children" :key="child.name" :index="child.path"

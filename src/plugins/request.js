@@ -4,7 +4,7 @@
  */
 
 import { axiosInstance as axios } from "./axios.js"
-
+import qs from 'qs'
 
 //get
 export function axiosGet(url,parameter={}) {
@@ -19,9 +19,19 @@ export function axiosPost(url,parameter={}) {
     return axios({
         url: url,
         method:'post' ,
-        data: parameter
+        data:parameter
     })
 }
+
+//带qs转换的post
+export function axiosPostWithStringify(url,parameter={}) {
+    return axios({
+        url: url,
+        method:'post' ,
+        data: qs.stringify(parameter,{indices: false}),
+    })
+}
+
 //delete
 export function axiosDelete(url,parameter={}) {
     return axios({
@@ -30,3 +40,4 @@ export function axiosDelete(url,parameter={}) {
         params: parameter
     })
 }
+
