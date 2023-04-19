@@ -1,47 +1,45 @@
 <template>
-  <div id="index">
-    <el-container class="layout-container-demo" style="height: 100%">
-      <el-aside width="200px" hight="100%">
-        <el-scrollbar>
-          <el-menu router :default-openeds="['0']">
-            <el-sub-menu v-for="(routeItem,index) in routes"
-                         :key="routeItem.name"
-                         :index="index+''">
-              <template #title>
-                <el-icon>
-                  <icon-menu/>
-                </el-icon>
-                <h4>{{ routeItem.name }}</h4>
-              </template>
-
-              <el-menu-item v-for="child in routeItem.children" :key="child.name" :index="child.path"
-                            :class="route.path.toLowerCase()==child.path.toLowerCase()?'is-active':''">
-                {{ child.name }}
-              </el-menu-item>
-            </el-sub-menu>
-          </el-menu>
-        </el-scrollbar>
-      </el-aside>
-
+  <div class="index">
+    <el-container class="layout-container-demo">
+      <el-header style="text-align: right; font-size: 15px" class="el-header">
+        <div class="toolbar">
+          <el-dropdown>
+            <el-icon style="margin-right: 8px; margin-top: 1px">
+              <setting/>
+            </el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item>View</el-dropdown-item>
+                <el-dropdown-item>Add</el-dropdown-item>
+                <el-dropdown-item>Delete</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <span>USER</span>
+        </div>
+      </el-header>
       <el-container>
-        <el-header style="text-align: right; font-size: 12px">
-          <div class="toolbar">
-            <el-dropdown>
-              <el-icon style="margin-right: 8px; margin-top: 1px">
-                <setting/>
-              </el-icon>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item>View</el-dropdown-item>
-                  <el-dropdown-item>Add</el-dropdown-item>
-                  <el-dropdown-item>Delete</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-            <span>Tom</span>
-          </div>
-        </el-header>
+        <el-aside width="200px" class="el-aside">
+          <el-scrollbar>
+            <el-menu router :default-openeds="['0']">
+              <el-sub-menu v-for="(routeItem,index) in routes"
+                           :key="routeItem.name"
+                           :index="index+''">
+                <template #title>
+                  <el-icon>
+                    <icon-menu/>
+                  </el-icon>
+                  <h4>{{ routeItem.name }}</h4>
+                </template>
 
+                <el-menu-item v-for="child in routeItem.children" :key="child.name" :index="child.path"
+                              :class="route.path.toLowerCase()==child.path.toLowerCase()?'is-active':''">
+                  {{ child.name }}
+                </el-menu-item>
+              </el-sub-menu>
+            </el-menu>
+          </el-scrollbar>
+        </el-aside>
         <el-main>
           <div class="el-main">
             <el-scrollbar>
@@ -74,7 +72,10 @@ export default {
 
 </script>
 
-<style scoped>
+<style>
+.layout-container-demo{
+  height: 100vh;
+}
 
 .layout-container-demo .el-header {
   position: relative;
@@ -87,7 +88,7 @@ export default {
   background: var(--el-color-primary-light-8);
 }
 
-.layout-container-demo .el-menu {
+ .el-menu {
   border-right: none;
 }
 

@@ -17,14 +17,14 @@
     <div class="demo-pagination-block">
       <el-pagination
           background
-          v-model:current-page="currentPage4"
+          v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :page-sizes="[10, 20, 50, 100]"
           :small="small"
           :disabled="disabled"
           :background="background"
           layout="total, sizes, prev, pager, next, jumper"
-          :total="400"
+          :total="total"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
       />
@@ -35,42 +35,47 @@
 <script>
 import {ref} from 'vue'
 
-const currentPage4 = ref(4)
-const pageSize = ref(20)
+const currentPage = ref(1)
+const pageSize = ref(10)
 const small = ref(false)
 const background = ref(false)
 const disabled = ref(false)
-
 
 export default {
   name: 'Table',
   data() {
     return {
+      total:null,
       tables: []
     }
   },
   created() {
     const _this = this
-    _this.$axiosGet('/icebergGovernance/table/findByPage/1/5')
+    _this.$axiosGet('/icebergGovernance/table/findByPage/'+currentPage.value+'/' + pageSize.value)
         .then(function (res) {
           _this.tables = res.data;
         });
+    _this.$axiosGet('/icebergGovernance/table/getTableCount')
+        .then(function (res) {
+          _this.total = res.data;
+        })
   },
   methods: {
     handleSizeChange(number) {
       const _this = this
       pageSize.value = number;
-      _this.$axiosGet('/icebergGovernance/table/findByPage/' + number + '/' + pageSize.value)
+      _this.$axiosGet('/icebergGovernance/table/findByPage/' + currentPage.value + '/' + pageSize.value)
           .then(function (res) {
             _this.tables = res.data;
           });
     },
     handleCurrentChange(number) {
       const _this = this
-      _this.$axiosGet('/icebergGovernance/table/findByPage/' + number + '/' + pageSize.value)
-      .then(function (res) {
-        _this.tables = res.data;
-      });
+      currentPage.value=number;
+      _this.$axiosGet('/icebergGovernance/table/findByPage/' + currentPage.value + '/' + pageSize.value)
+          .then(function (res) {
+            _this.tables = res.data;
+          });
     }
   }
 }

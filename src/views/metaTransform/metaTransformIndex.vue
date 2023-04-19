@@ -1,6 +1,11 @@
 <template>
   <el-form :model="formData" ref="vForm" :rules="rules" label-position="left" label-width="150px"
-           size="default" @submit.prevent>
+           size="default" @submit.prevent
+           v-loading="loading"
+           element-loading-text="Loading..."
+           :element-loading-spinner="svg"
+           element-loading-svg-view-box="-10, -10, 50, 50"
+           element-loading-background="rgba(122, 122, 122, 0.8)">
     <div class="static-content-item">
     </div>
     <div class="static-content-item" v-show="false">
@@ -85,10 +90,18 @@
           </el-col>
           <el-col :span="24" class="grid-cell">
             <el-form-item label="自定义配置" prop="envConfigFile" class="label-right-align">
-              <el-upload :file-list="envConfigFileFileList" :headers="envConfigFileUploadHeaders"
-                         :data="envConfigFileUploadData" list-type="picture-card" show-file-list :limit="3">
-                <template
-                    #default><i class="el-icon-plus"></i></template>
+              <el-upload
+                  v-model:file-list="envConfigFileFileList"
+                  class="upload-demo"
+                  action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                  :on-change="handleChange"
+              >
+                <el-button type="primary">上传</el-button>
+                <template #tip>
+                  <div class="el-upload__tip">
+                    xml files with a size less than 500kb
+                  </div>
+                </template>
               </el-upload>
             </el-form-item>
           </el-col>
@@ -111,8 +124,8 @@
         </template>
         <el-row>
           <el-col :span="24" class="grid-cell">
-            <el-form-item label="自定义表属性" prop="icebergTableConfig" class="label-right-align">
-              <el-input type="textarea" v-model="formData.icebergTableConfig" rows="3"></el-input>
+            <el-form-item label="自定义表属性" prop="tableConfigData" class="label-right-align">
+              <el-input type="textarea" v-model="tableConfigData" rows="3"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="24" class="grid-cell">
@@ -147,7 +160,8 @@ import {
   defineComponent,
   toRefs,
   reactive,
-  getCurrentInstance
+  getCurrentInstance,
+  ref
 }
   from 'vue'
 
@@ -156,6 +170,8 @@ export default defineComponent({
   components: {},
   props: {},
   data() {
+    const loading = true
+    const tableConfigData = null;
     const state = reactive({
       isUdfDatabase: false,
       formData: {
@@ -195,11 +211,11 @@ export default defineComponent({
           required: true,
           message: '请输入导入用户',
         }],
-        listType:[{
+        listType: [{
           required: true,
           message: '请选择清单类型',
         }],
-        catalogId:[{
+        catalogId: [{
           required: true,
           message: '请选择要导入的Catalog',
         }]
@@ -227,11 +243,14 @@ export default defineComponent({
       instance.proxy.$refs['vForm'].validate(valid => {
         if (!valid) return
         const _this = this
+        _this.loading = true;
+        _this.parseMapData()
         console.log(_this.formData)
         // _this.$axiosPost('/metaTransform/test', _this.formData)
         _this.$axiosPost('/metaTransform/createMultiMetaTransformByForm', _this.formData)
             .then(function (res) {
               alert(res.message)
+              _this.loading = false;
             });
       })
     }
@@ -240,6 +259,8 @@ export default defineComponent({
     }
 
     return {
+      loading,
+      tableConfigData,
       ...toRefs(state),
       submitForm,
       resetForm
@@ -247,10 +268,29 @@ export default defineComponent({
   },
   created() {
     const _this = this
+    _this.loading = true;
     _this.$axiosGet('/icebergGovernance/catalog/getCatalogList')
         .then(function (res) {
           _this.catalogOptions = res.data;
+          _this.loading = false;
         });
+  },
+  methods: {
+    parseMapData() {
+      const mapDataStr = this.tableConfigData
+      if (!mapDataStr) {
+        return
+      }
+      const mapDataArr = mapDataStr.split('\n')
+      const mapData = new Map()
+      mapDataArr.forEach(item => {
+        const [key, value] = item.split('=')
+        if (key && value) {
+          mapData.set(key, value)
+        }
+      })
+      this.formData.icebergTableConfig = Object.fromEntries(mapData)
+    }
   }
 })
 
@@ -306,6 +346,9 @@ export default defineComponent({
   float: right;
 }
 
+.example-showcase .el-loading-mask {
+  z-index: 9;
+}
 </style>
 
 <style lang="scss" scoped>
