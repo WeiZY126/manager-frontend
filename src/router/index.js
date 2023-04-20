@@ -14,7 +14,8 @@ const routes = [
             {
                 path: '/metaTransformIndex',
                 name: '元数据迁移',
-                component: ()=>import('../views/metaTransform/metaTransformIndex')
+                component: ()=>import('../views/metaTransform/metaTransformIndex'),
+                meta: { keepAlive: true }
             },
             {
                 path: '/SQLParseIndex',
@@ -22,30 +23,31 @@ const routes = [
                 // route level code-splitting
                 // this generates a separate chunk (about.[hash].js) for this route
                 // which is lazy-loaded when the route is visited.
-                component: () => import(/* webpackChunkName: "about" */ '../views/SQLParse/SQLParseIndex')
-            }
-        ]
-    },
-    ,
-    {
-        path: "/manager",
-        name: "数据湖管理",
-        component: Index,
-        redirect:"/Catalog",
-        children: [
-            {
-                path: '/Catalog',
-                name: 'Catalog',
-                component: Catalog
-
-            },
-            {
-                path: '/Table',
-                name: 'Table',
-                component: Table
+                component: () => import(/* webpackChunkName: "about" */ '../views/SQLParse/SQLParseIndex'),
+                meta: { keepAlive: true }
             }
         ]
     }
+    // ,
+    // {
+    //     path: "/manager",
+    //     name: "数据湖管理",
+    //     component: Index,
+    //     redirect:"/Catalog",
+    //     children: [
+    //         {
+    //             path: '/Catalog',
+    //             name: 'Catalog',
+    //             component: Catalog
+    //
+    //         },
+    //         {
+    //             path: '/Table',
+    //             name: 'Table',
+    //             component: Table
+    //         }
+    //     ]
+    // }
 ]
 
 const router = createRouter({

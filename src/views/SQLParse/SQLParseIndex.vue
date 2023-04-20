@@ -31,7 +31,7 @@
             </template>
             <el-table :data="resData" style="width: 100%" max-height="750">
               <el-table-column fixed prop="key" label="SQL" width="150"/>
-              <el-table-column prop="value" label="校验结果" width="400">
+              <el-table-column prop="value" label="校验结果">
                 <template v-slot="{ row }">
                   <div v-html="formatValue(row.value)"></div>
                 </template>
@@ -56,6 +56,7 @@ import {
   from 'vue'
 
 export default defineComponent({
+  name:"SQL语法解析",
   components: {},
   props: {},
   data() {

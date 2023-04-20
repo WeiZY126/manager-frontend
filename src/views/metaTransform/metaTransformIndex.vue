@@ -28,7 +28,7 @@
               <el-input v-model="formData.hiveConnection.username" type="text" clearable></el-input>
             </el-form-item>
             <el-form-item label="密码" prop="hiveConnection.password" class="required label-right-align">
-              <el-input v-model="formData.hiveConnection.password" type="text" clearable></el-input>
+              <el-input v-model="formData.hiveConnection.password" type="password" clearable></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="11" :offset="1" class="grid-cell">
@@ -129,7 +129,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="24" class="grid-cell">
-            <el-form-item label="导入清单类型" prop="listType" class="required label-right-align">
+            <el-form-item label="导出清单类型" prop="listType" class="required label-right-align">
               <el-select v-model="formData.listType" class="full-width-input" clearable>
                 <el-option v-for="(item, index) in listTypeOptions" :key="index" :label="item.label"
                            :value="item.value" :disabled="item.disabled"></el-option>
