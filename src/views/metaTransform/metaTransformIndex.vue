@@ -87,6 +87,13 @@
             <el-form-item label="自定义导入库名" prop="udfDataBase" class="label-right-align" v-if="isUdfDatabase">
               <el-input v-model="formData.udfDataBase" type="text" placeholder="开启后, 所有表都会导入自定义库下" clearable></el-input>
             </el-form-item>
+            <el-form-item label="项目组导入" prop="isProjectTeam" class="label-right-align">
+              <el-switch v-model="isProjectTeam"></el-switch>
+            </el-form-item>
+            <el-form-item label="项目组名称" prop="projectTeam" class="label-right-align" v-if="isProjectTeam">
+              <el-input v-model="formData.projectTeam" type="text" placeholder="开启后, 所有表都会导入在项目组所属目录下"
+                        clearable></el-input>
+            </el-form-item>
           </el-col>
           <el-col :span="24" class="grid-cell">
             <el-form-item label="自定义配置" prop="envConfigFile" class="label-right-align">
@@ -125,7 +132,7 @@
         <el-row>
           <el-col :span="24" class="grid-cell">
             <el-form-item label="自定义表属性" prop="tableConfigData" class="label-right-align">
-              <el-input type="textarea" v-model="tableConfigData" rows="3"></el-input>
+              <el-input type="textarea" v-model="tableConfigData" rows="3" placeholder="例:&#13;&#10;format-version=2,&#13;&#10;write.format.default=parquet"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="24" class="grid-cell">
@@ -137,7 +144,7 @@
             </el-form-item>
             <el-form-item label="表清单" prop="tableList" class="label-right-align" v-if="formData.listType=='list'">
               <el-input type="textarea" v-model="formData.tableList"
-                        placeholder="例:dbs1 tbl1;dbs2 tbl2;...表数量大于50张请使用文件方式" rows="3"></el-input>
+                        placeholder="db1 tbl1&#13;&#10;db2 tbl2...&#13;&#10;表数量大于50张请使用文件方式" rows="3"></el-input>
             </el-form-item>
             <el-form-item label="主机文件路径" prop="udfDataBase" class="label-right-align" v-if="formData.listType=='file'">
               <el-input v-model="formData.filePath" type="text" placeholder="请联系管理员上传文件" clearable></el-input>
@@ -174,6 +181,7 @@ export default defineComponent({
     const tableConfigData = null;
     const state = reactive({
       isUdfDatabase: false,
+      isProjectTeam: false,
       formData: {
         hiveConnection: {
           uri: "",
@@ -191,6 +199,7 @@ export default defineComponent({
         listType: null,
         tableList: null,
         filePath: null,
+        projectTeam: null
       },
       rules: {
         hiveConnection: {
@@ -222,7 +231,7 @@ export default defineComponent({
       },
       catalogOptions: [],
       listTypeOptions: [{
-        "label": "清单",
+        "label": "清单(推荐)",
         "value": "list"
       }, {
         "label": "文件路径",
@@ -243,14 +252,14 @@ export default defineComponent({
       instance.proxy.$refs['vForm'].validate(valid => {
         if (!valid) return
         const _this = this
-        _this.loading = true;
+        // _this.loading = true;
         _this.parseMapData()
         console.log(_this.formData)
         // _this.$axiosPost('/metaTransform/test', _this.formData)
         _this.$axiosPost('/metaTransform/createMultiMetaTransformByForm', _this.formData)
             .then(function (res) {
               alert(res.message)
-              _this.loading = false;
+              // _this.loading = false;
             });
       })
     }
