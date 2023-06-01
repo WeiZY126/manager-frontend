@@ -132,7 +132,8 @@
         <el-row>
           <el-col :span="24" class="grid-cell">
             <el-form-item label="自定义表属性" prop="tableConfigData" class="label-right-align">
-              <el-input type="textarea" v-model="tableConfigData" rows="3" placeholder="例:&#13;&#10;format-version=2,&#13;&#10;write.format.default=parquet"></el-input>
+              <el-input type="textarea" v-model="tableConfigData" rows="3"
+                        placeholder="换行分隔,例:&#13;&#10;format-version=2&#13;&#10;write.format.default=parquet"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="24" class="grid-cell">
@@ -144,7 +145,7 @@
             </el-form-item>
             <el-form-item label="表清单" prop="tableList" class="label-right-align" v-if="formData.listType=='list'">
               <el-input type="textarea" v-model="formData.tableList"
-                        placeholder="db1 tbl1&#13;&#10;db2 tbl2...&#13;&#10;表数量大于50张请使用文件方式" rows="3"></el-input>
+                        placeholder="db1 tbl1&#13;&#10;db2 tbl2...&#13;&#10;表数量大于50张建议使用文件方式" rows="3"></el-input>
             </el-form-item>
             <el-form-item label="主机文件路径" prop="udfDataBase" class="label-right-align" v-if="formData.listType=='file'">
               <el-input v-model="formData.filePath" type="text" placeholder="请联系管理员上传文件" clearable></el-input>
@@ -156,7 +157,37 @@
       </el-card>
     </div>
     <div class="static-content-item">
-      <el-button @click="submitForm">提交</el-button>
+      <el-button @click="submitForm">
+        提交
+      </el-button>
+
+      <el-dialog v-model="visible"
+                 :show-close="false"
+                 :close-on-click-modal="false"
+                 width="70%"
+                 :before-close="handleClose"
+      >
+        <template #header="{ close, titleId, titleClass }">
+          <div class="my-header">
+            <h4 :id="titleId" :class="titleClass">执行结果</h4>
+            <el-button type="danger" @click="close">
+              <!--              <el-icon class="el-icon&#45;&#45;left">-->
+              <!--                <CircleCloseFilled/>-->
+              <!--              </el-icon>-->
+              Close
+            </el-button>
+          </div>
+        </template>
+        <el-input
+            id="textarea_id"
+            type="textarea"
+            :rows="20"
+            placeholder="wait a moment.."
+            v-model="taskLog"
+            readonly="">
+        </el-input>
+      </el-dialog>
+      <!--      <el-button @click="submitForm">提交</el-button>-->
     </div>
   </el-form>
 
@@ -171,6 +202,7 @@ import {
   ref
 }
   from 'vue'
+import {ElMessageBox} from "element-plus";
 
 export default defineComponent({
   name: 'metaTransformIndex',
@@ -180,6 +212,8 @@ export default defineComponent({
     const loading = true
     const tableConfigData = null;
     const state = reactive({
+      visible: false,
+      taskLog: "",
       isUdfDatabase: false,
       isProjectTeam: false,
       formData: {
@@ -187,7 +221,7 @@ export default defineComponent({
           uri: "",
           username: "",
           password: "",
-          poolSize: 3,
+          poolSize: 1,
           maxRetry: 5
         },
         catalogId: null,
@@ -252,20 +286,43 @@ export default defineComponent({
       instance.proxy.$refs['vForm'].validate(valid => {
         if (!valid) return
         const _this = this
-        // _this.loading = true;
+        _this.loading = true;
         _this.parseMapData()
-        console.log(_this.formData)
+        _this.taskLog = ""
         // _this.$axiosPost('/metaTransform/test', _this.formData)
         _this.$axiosPost('/metaTransform/createMultiMetaTransformByForm', _this.formData)
             .then(function (res) {
-              alert(res.message)
-              // _this.loading = false;
+              // alert(res.message)
+              _this.loading = false;
+              _this.visible = true;
+              let taskID = res.data;
+              let logUrl = 'ws://134.96.176.241:28781/tasks/log/' + taskID;
+              var webSocket = new WebSocket(logUrl);
+              webSocket.onopen = function () {
+                console.log("open log ws")
+              }
+              webSocket.onmessage = function (msg) {
+                _this.taskLog = _this.taskLog + msg.data + '\r\n';
+              }
+              webSocket.onclose = function () {
+                console.log("close log ws")
+              }
             });
       })
     }
     const resetForm = () => {
       instance.proxy.$refs['vForm'].resetFields()
     }
+
+    // const handleClose = (done: () => void) => {
+    //   ElMessageBox.confirm('Are you sure to close this dialog?')
+    //       .then(() => {
+    //         done()
+    //       })
+    //       .catch(() => {
+    //         // catch error
+    //       })
+    // }
 
     return {
       loading,
@@ -304,6 +361,7 @@ export default defineComponent({
 })
 
 </script>
+
 
 <style lang="scss">
 .el-input-number.full-width-input,
@@ -357,6 +415,12 @@ export default defineComponent({
 
 .example-showcase .el-loading-mask {
   z-index: 9;
+}
+
+.my-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 </style>
 
