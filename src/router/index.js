@@ -13,7 +13,7 @@ const routes = [
         children: [
             {
                 path: '/metaTransformIndex',
-                name: '元数据迁移',
+                name: '表模型迁移',
                 component: ()=>import('../views/metaTransform/metaTransformIndex'),
                 meta: { keepAlive: true }
             },
@@ -24,6 +24,12 @@ const routes = [
                 // this generates a separate chunk (about.[hash].js) for this route
                 // which is lazy-loaded when the route is visited.
                 component: () => import(/* webpackChunkName: "about" */ '../views/SQLParse/SQLParseIndex'),
+                meta: { keepAlive: true }
+            },
+            {
+                path: '/tableCreateIndex',
+                name: '表模型创建',
+                component: () => import(/* webpackChunkName: "about" */ '../views/metaTransform/tableCreateIndex'),
                 meta: { keepAlive: true }
             }
         ]
