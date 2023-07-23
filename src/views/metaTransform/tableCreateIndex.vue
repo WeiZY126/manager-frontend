@@ -27,9 +27,9 @@
                 />
               </el-select>
             </el-form-item>
-<!--            <el-form-item label="库名" style="margin-bottom: 0;" prop="databaseName" class="required">-->
-<!--              <el-input v-model="formData.databaseName" style="width: 100%;"></el-input>-->
-<!--            </el-form-item>-->
+            <!--            <el-form-item label="库名" style="margin-bottom: 0;" prop="databaseName" class="required">-->
+            <!--              <el-input v-model="formData.databaseName" style="width: 100%;"></el-input>-->
+            <!--            </el-form-item>-->
           </el-col>
           <el-col :span="8">
             <el-form-item label="表名" style="margin-bottom: 0;" prop="tableName" class="required">
@@ -72,6 +72,7 @@
           </el-table-column>
         </el-table>
         <el-button type="primary" @click="addColumn">+ 添加字段</el-button>
+        <el-button type="primary" @click="openImportSQL">+ 一键导入</el-button>
       </el-form-item>
       <el-form-item label="分区信息">
         <el-table :data="formData.partitionList" style="width: 100%">
@@ -129,12 +130,14 @@
           <el-button type="primary" @click="addPartition">+ 添加分区</el-button>
         </div>
         <div v-else>
-          <el-button type="primary" circle @click="addPartition" size="small" style="margin-left: 10px;font-size: 20px">+</el-button>
+          <el-button type="primary" circle @click="addPartition" size="small" style="margin-left: 10px;font-size: 20px">
+            +
+          </el-button>
         </div>
       </el-form-item>
 
       <el-form-item label="删除键/主键">
-        <el-select v-model="formData.identifierKeyList" multiple  placeholder="可选">
+        <el-select v-model="formData.identifierKeyList" multiple placeholder="可选">
           <el-option v-for="item in formData.columnsList" :key="item.name" :label="item.name"
                      :value="item.name"></el-option>
         </el-select>
@@ -153,7 +156,7 @@
       </el-form-item>
       <el-row :gutter="10">
         <el-col :span="8">
-          <el-form-item label="项目组" prop="projectTeam" class="required">
+          <el-form-item label="项目组" prop="projectTeam">
             <el-input v-model="formData.projectTeam"></el-input>
           </el-form-item>
         </el-col>
@@ -170,6 +173,50 @@
       <el-button type="primary" @click="submitForm">提交创建</el-button>
     </el-form-item>
   </el-card>
+  <el-dialog v-model="importSQLOpen"
+             :show-close="false"
+             :close-on-click-modal="false"
+             width="70%"
+             custom-class="my-dialog-style">
+    <template #header="{ close, titleId, titleClass }">
+      <div class="my-header-style">
+        <h4 :id="titleId" :class="titleClass">导入 SQL 建表语句</h4>
+        <div class="my-danger-button">
+          <el-button type="danger"  @click="close">
+            ×
+          </el-button></div>
+      </div>
+    </template>
+
+    <div class="my-content-style">
+      <el-row>
+        <el-col :span="24" class="grid-cell">
+          <el-input
+              type="textarea"
+              v-model="fromSQL"
+              :rows="20"
+              placeholder="请输入 SQL 建表语句，建议只保留字段、主键信息。目前仅能识别 PRIMARY KEY(xx) 指定主键的方式，其他方式请在页面上添加主键。
+示例如下:
+CREATE TABLE users (
+id int(11) NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+username varchar(50) NOT NULL COMMENT '用户名',
+password decimal(16,0) NOT NULL COMMENT '密码',
+email varchar(100) DEFAULT NULL COMMENT '电子邮箱',
+created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='用户表';"
+              class="input-textarea">
+          </el-input>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="24" class="grid-cell">
+          <el-button type="primary" @click="submitParse" class="submit-btn">解析</el-button>
+        </el-col>
+      </el-row>
+    </div>
+  </el-dialog>
 </template>
 
 <script>
@@ -281,21 +328,32 @@ export default {
                 children: [
                   {
                     value: 'format-version=2\n' +
-                        'comment=表描述信息\n'+
+                        'comment=表描述信息\n' +
                         'write.upsert.enabled=true\n' +
                         'write.merge.mode=merge-on-read\n' +
                         'write.delete.mode=merge-on-read\n' +
                         'write.update.mode=merge-on-read\n' +
+                        'write.distribution-mode=hash\n' +
+                        'write.metadata.metrics.default=full\n' +
                         'write.metadata.previous-versions-max=50\n' +
                         'write.metadata.delete-after-commit.enabled=true',
                     label: 'CDC流式接入表',
                   },
                   {
                     value: 'format-version=1\n' +
-                        'comment=表描述信息\n'+
+                        'comment=表描述信息\n' +
+                        'write.distribution-mode=hash\n' +
+                        'manager.merge.container=stream\n' +
                         'write.metadata.previous-versions-max=50\n' +
                         'write.metadata.delete-after-commit.enabled=true',
-                    label: '非CDC接入，无行级更新',
+                    label: '非CDC流式接入，无行级更新',
+                  },
+                  {
+                    value: 'format-version=1\n' +
+                        'comment=表描述信息\n' +
+                        'write.metadata.previous-versions-max=50\n' +
+                        'write.metadata.delete-after-commit.enabled=true',
+                    label: '批式接入，无行级更新',
                   },
                 ]
               },
@@ -304,7 +362,7 @@ export default {
                 children: [
                   {
                     value: 'format-version=2\n' +
-                        'comment=表描述信息\n'+
+                        'comment=表描述信息\n' +
                         'write.upsert.enabled=true\n' +
                         'write.metadata.previous-versions-max = 50\n' +
                         'write.metadata.delete-after-commit.enabled = true',
@@ -312,7 +370,7 @@ export default {
                   },
                   {
                     value: 'format-version=1\n' +
-                        'comment=表描述信息\n'+
+                        'comment=表描述信息\n' +
                         'write.metadata.previous-versions-max=50\n' +
                         'write.metadata.delete-after-commit.enabled=true',
                     label: '维表/其他表，无行级更新',
@@ -322,7 +380,7 @@ export default {
               {
                 label: 'StarRocks外表',
                 value: 'format-version=1\n' +
-                    'comment=表描述信息\n'+
+                    'comment=表描述信息\n' +
                     'write.metadata.previous-versions-max=50\n' +
                     'write.metadata.delete-after-commit.enabled=true'
               },
@@ -382,13 +440,15 @@ export default {
       newKey: '',
       newValue: '',
       catalogOptions: [],
-      databaseOptions:[],
+      databaseOptions: [],
       loading: false,
       partitionTypes,
       columnTypes,
       tableConfigStrategy,
       tableConfigStrategyValue: [],
-      tableConfigData
+      tableConfigData,
+      importSQLOpen: false,
+      fromSQL: '',
     };
   },
   created() {
@@ -427,6 +487,22 @@ export default {
               });
         }
       })
+    },
+    submitParse() {
+      const _this = this
+      if (_this.fromSQL != null && _this.fromSQL != '') {
+        // 在此处编写提交表单数据的逻辑
+        _this.loading = true;
+        _this.$axiosJsonPost('/tableOperation/parseKeyAndColumn', {fromSQL: _this.fromSQL})
+            .then(function (res) {
+              _this.formData.columnsList = res.data.data.columnsList
+              _this.formData.identifierKeyList = res.data.data.identifierKeyList
+              _this.loading = false;
+              _this.importSQLOpen = false
+            });
+      } else {
+        alert("请输入建表SQL")
+      }
     },
     addColumn() {
       this.formData.columnsList.push({
@@ -490,12 +566,20 @@ export default {
       const _this = this
       _this.loading = true;
       _this.parseMapData()
-      _this.$axiosGet('/icebergGovernance/namespace/getNameSpaceListByCatalogId/' + _this.formData.catalogId)
-          .then(function (res) {
-            _this.databaseOptions = res.data;
-            _this.loading = false;
-          });
+      if (_this.formData.catalogId != '' && _this.formData.catalogId != null) {
+        _this.$axiosGet('/icebergGovernance/namespace/getNameSpaceListByCatalogId/' + _this.formData.catalogId)
+            .then(function (res) {
+              _this.databaseOptions = res.data;
+              _this.loading = false;
+            });
+      } else {
+        _this.databaseOptions = [];
+        _this.loading = false;
+      }
     },
+    openImportSQL() {
+      this.importSQLOpen = true;
+    }
   },
 }
 </script>
@@ -510,5 +594,80 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.my-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  height: 20px;
+}
+
+.my-dialog-style {
+  border-radius: 6px;
+}
+
+.my-dialog-style {
+  border-radius: 6px;
+}
+
+.my-header-style {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background-color: #f2f6fc;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.my-danger-button .el-button {
+  border-radius: 50%;
+  padding: 0;
+  background-color: #ff4949;
+  color: #fff;
+  font-size: 24px;
+}
+
+
+.my-header-style h4 {
+  font-size: 20px;
+  font-weight: bold;
+  color: #3c4858;
+}
+
+.my-header-style .el-button {
+  font-size: 20px;
+  height: auto;
+  padding: 0 4px;
+  background-color: transparent;
+  color: #303133;
+}
+
+.my-header-style .el-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.my-content-style {
+  padding: 20px;
+  background-color: #fff;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.my-content-style .input-textarea {
+  background-color: #f5f7fa;
+  border-radius: 6px;
+}
+
+.my-content-style .submit-btn {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.my-content-style .parse-result {
+  margin-top: 20px;
 }
 </style>

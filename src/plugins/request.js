@@ -3,7 +3,7 @@
  * （后续还可以添加文件的上传、下载、文件的导出等等）
  */
 
-import { axiosInstance as axios } from "./axios.js"
+import { axiosInstance as axios ,axiosJsonInstance as axiosJson} from "./axios.js"
 import qs from 'qs'
 
 //get
@@ -20,6 +20,16 @@ export function axiosPost(url,parameter={}) {
         url: url,
         method:'post' ,
         data:parameter
+    })
+}
+
+//json格式的post
+//post
+export function axiosJsonPost(url,parameter={}) {
+    return axiosJson({
+        url: url,
+        method:'post' ,
+        data:parameter,
     })
 }
 
